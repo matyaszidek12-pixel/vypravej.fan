@@ -1,94 +1,764 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kvíz · Vyprávěj</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Kvíz – Vyprávěj</title>
+
 <link rel="stylesheet" href="css/style.css">
+
 <style>
-.quiz-settings{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
-.quiz-level{border:1px solid rgba(88,56,31,.2);border-radius:14px;padding:18px;background:#fffaf0;cursor:pointer;font:inherit}
-.quiz-level.active{background:#6c4b2c;color:white}
-.quiz-start{margin-top:10px}
-.quiz-question{font-size:1.35rem;line-height:1.45;margin:20px 0}
-.quiz-answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.quiz-answer{padding:16px;text-align:left;border:1px solid rgba(88,56,31,.2);border-radius:12px;background:#fffaf0;cursor:pointer;font:inherit}
-.quiz-answer:hover{transform:translateY(-1px)}
-.quiz-answer.correct{background:#dcebd8}
-.quiz-answer.wrong{background:#f2d5d0}
-.quiz-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.quiz-result{text-align:center;padding:20px}
-@media(max-width:700px){.quiz-settings,.quiz-answers{grid-template-columns:1fr}}
+.quiz-box {
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+.difficulties {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.difficulty {
+    padding: 25px;
+    border: 2px solid #8b633c;
+    border-radius: 15px;
+    background: #fff8e9;
+    cursor: pointer;
+    text-align: center;
+    font-size: 18px;
+}
+
+.difficulty.active {
+    background: #76502e;
+    color: white;
+}
+
+#startQuiz {
+    display: block;
+    margin: 20px auto;
+    padding: 15px 35px;
+    border: 0;
+    border-radius: 10px;
+    background: #76502e;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+#startQuiz:hover {
+    background: #56391f;
+}
+
+.question {
+    font-size: 25px;
+    margin: 30px 0;
+}
+
+.answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.answer {
+    padding: 20px;
+    border: 2px solid #c9ad88;
+    border-radius: 12px;
+    background: #fffaf0;
+    cursor: pointer;
+    text-align: left;
+    font-size: 17px;
+}
+
+.answer:hover {
+    background: #f2e3c8;
+}
+
+.answer.correct {
+    background: #b9d9ad;
+}
+
+.answer.wrong {
+    background: #e5aaa0;
+}
+
+.score {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.result {
+    text-align: center;
+    padding: 40px;
+}
+
+.restart {
+    padding: 15px 30px;
+    border: 0;
+    border-radius: 10px;
+    background: #76502e;
+    color: white;
+    cursor: pointer;
+}
+
+@media(max-width:700px) {
+    .difficulties,
+    .answers {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 </head>
-<body>
-<nav class="nav"><div class="navin">
-<a class="brand" href="index.html">VYPRÁVĚJ<small>NEOFICIÁLNÍ FANOUŠKOVSKÝ WEB</small></a>
-<a href="serial.html">Seriál</a><a href="rady.html">Řady</a><a href="epizody.html">Epizody</a><a href="postavy.html">Postavy</a><a href="timeline.html">Časová osa</a><a href="zajimavosti.html">Zajímavosti</a><a href="bonusy.html">Bonusy</a><a href="galerie.html">Galerie</a><a href="kviz.html">Kvíz</a>
-</div></nav>
-<main><section class="wrap">
-<span class="sectiontag">Kvíz</span>
-<h1 class="title">Jak dobře znáš Vyprávěj?</h1>
-<p class="lead">Vyber obtížnost. Každá hra má přesně 15 náhodně vybraných otázek a odpovědi se pokaždé promíchají.</p>
-<div id="settings" class="paper">
-<h2>Vyber obtížnost</h2>
-<div class="quiz-settings">
-<button class="quiz-level active" data-level="lehka"><b>Lehká</b><br>Pro začátečníky</button>
-<button class="quiz-level" data-level="stredni"><b>Střední</b><br>Pro fanoušky seriálu</button>
-<button class="quiz-level" data-level="tezka"><b>Těžká</b><br>Pro znalce Vyprávěj</button>
-</div>
-<button id="start" class="btn quiz-start">Spustit kvíz</button>
-</div>
-<div id="quiz" class="paper" style="display:none"></div>
-</section></main>
-<footer><b>VYPRÁVĚJ · neoficiální fanouškovský web</b><p>Web není oficiálním webem České televize.</p></footer>
-<script>
-const BANK={"lehka": [["Kdy začíná příběh seriálu Vyprávěj?", "1964", ["1964", "1958", "1972", "1989"]], ["Kdo hraje Karla Dvořáka?", "Roman Vojtek", ["Roman Vojtek", "Svatopluk Skopal", "David Prachař", "Jaromír Nosek"]], ["Kdo hraje Evu Dvořákovou?", "Andrea Kerestešová", ["Andrea Kerestešová", "Veronika Freimanová", "Lucie Štěpánková", "Hana Vagnerová"]], ["Kolik dílů má první řada?", "26", ["26", "16", "22", "30"]], ["Jak se jmenuje první díl seriálu?", "Od začátku", ["Od začátku", "Shledání", "Svatba", "21. srpen"]], ["Kdo hraje Josefa Dvořáka?", "Svatopluk Skopal", ["Svatopluk Skopal", "Roman Vojtek", "Tomáš Töpfer", "David Prachař"]], ["Kdo hraje Janu Dvořákovou?", "Veronika Freimanová", ["Veronika Freimanová", "Veronika Žilková", "Mahulena Bočanová", "Nina Divíšková"]], ["Kdo hraje babičku Bětu?", "Nina Divíšková", ["Nina Divíšková", "Veronika Freimanová", "Hana Vagnerová", "Milka Minichová"]], ["Kdo režíroval seriál Vyprávěj?", "Biser A. Arichtev", ["Biser A. Arichtev", "Jan Hřebejk", "Dušan Klein", "Jiří Strach"]], ["Kdo je vedoucím scenáristou seriálu?", "Rudolf Merkner", ["Rudolf Merkner", "David Solař", "Michal Hrůza", "Filip Bobiňski"]], ["Kdo složil hudbu k seriálu?", "David Solař", ["David Solař", "Michal Hrůza", "Rudolf Merkner", "Emil Pawinger"]], ["Kdo vytvořil titulní píseň?", "Michal Hrůza", ["Michal Hrůza", "David Solař", "Roman Vojtek", "Biser A. Arichtev"]], ["Kolik dílů má druhá řada?", "16", ["16", "22", "26", "18"]], ["Kolik dílů má pátá řada?", "22", ["22", "16", "24", "26"]], ["Jak se jmenuje první díl čtvrté řady?", "Shledání", ["Shledání", "Miss", "Sametová revoluce", "Havel na Hrad!"]]], "stredni": [["Která událost je hlavním tématem dílu 21. srpen?", "Invaze vojsk v roce 1968", ["Invaze vojsk v roce 1968", "Sametová revoluce", "Rozdělení Československa", "Kuponová privatizace"]], ["Jak se jmenuje první díl třetí řady?", "Na rozcestí", ["Na rozcestí", "Dovolená", "Delegace", "Přijímačky"]], ["Jak se jmenuje první díl páté řady?", "Kuponová privatizace", ["Kuponová privatizace", "Au-pair", "Rozdělení republiky", "Povodně"]], ["Který díl čtvrté řady se věnuje Sametové revoluci?", "Sametová revoluce", ["Sametová revoluce", "Listopad 1989", "Několik vět", "Občanské fórum"]], ["Jak se jmenuje závěrečný díl seriálu?", "Něco končí, jiné začíná", ["Něco končí, jiné začíná", "Nový začátek", "Konec vyprávění", "Poslední svatba"]], ["Kdo hraje Tondu Sovu?", "Jaromír Nosek", ["Jaromír Nosek", "David Kraus", "Ján Jackuliak", "Ondřej Veselý"]], ["Kdo hraje Radima Dvořáka?", "David Prachař", ["David Prachař", "Roman Vojtek", "Svatopluk Skopal", "Jiří Štěpnička"]], ["Kdo hraje Miladu Dvořákovou?", "Mahulena Bočanová", ["Mahulena Bočanová", "Hana Vagnerová", "Veronika Žilková", "Lenka Zahradnická"]], ["Kdo hraje Renátu Dvořákovou?", "Lenka Zahradnická", ["Lenka Zahradnická", "Jana Bernášková", "Olga Lounová", "Alžběta Stanková"]], ["Kdo hraje Hynka Kupsu?", "Josef Polášek", ["Josef Polášek", "Ján Jackuliak", "Jan Šťastný", "Ladislav Hampl"]], ["Kdo hraje Kamilu Ptáčkovou?", "Zuzana Kajnarová", ["Zuzana Kajnarová", "Jana Bernášková", "Veronika Žilková", "Nela Boudová"]], ["Který díl druhé řady se jmenuje Charta 77?", "15. díl", ["15. díl", "10. díl", "13. díl", "16. díl"]], ["Který díl čtvrté řady se jmenuje Havel na Hrad!?", "10. díl", ["10. díl", "7. díl", "8. díl", "16. díl"]], ["Který díl páté řady se jmenuje Povodně?", "10. díl", ["10. díl", "9. díl", "11. díl", "22. díl"]], ["Která řada má 26 epizod?", "I. a III. řada", ["I. a III. řada", "II. a IV. řada", "IV. a V. řada", "II. a V. řada"]]], "tezka": [["Kolik klasických epizod má seriál dohromady napříč pěti řadami?", "106", ["106", "123", "96", "116"]], ["Jaký je přesný počet epizod třetí řady?", "26", ["26", "16", "22", "24"]], ["Jaký je přesný počet epizod čtvrté řady?", "16", ["16", "22", "26", "18"]], ["Která dvojice názvů patří bezprostředně k začátku čtvrté řady?", "Shledání a Miss", ["Shledání a Miss", "Miss a Jugoslávie", "Jugoslávie a Několik vět", "Několik vět a Jakešův projev"]], ["Která dvojice názvů patří k začátku páté řady?", "Kuponová privatizace a Au-pair", ["Kuponová privatizace a Au-pair", "Au-pair a Cibulkovy seznamy", "Cibulkovy seznamy a Rozdělení republiky", "Rozdělení republiky a Poslové víry"]], ["Který herec ztvárnil Karla Dvořáka?", "Roman Vojtek", ["Roman Vojtek", "Radoslav Brzobohatý", "David Prachař", "Matěj Hádek"]], ["Která postava má mezi představiteli Matěje Hádka, Branislava Holička, Jiřího Nováka a Zdeňka Piškulu?", "Honza Dvořák", ["Honza Dvořák", "Matěj Dvořák", "Karel Dvořák", "Radim Dvořák"]], ["Která postava má mezi představitelkami Lucii Štěpánkovou, Elišku Křenkovou a Elišku Zbrankovou?", "Lucka Francová", ["Lucka Francová", "Eva Dvořáková", "Zuzka Sovová", "Veronika Francová"]], ["Kdo z uvedených je autorem hudby k seriálu?", "David Solař", ["David Solař", "Rudolf Merkner", "Michal Hrůza", "Filip Bobiňski"]], ["Kdo vytvořil titulní píseň seriálu?", "Michal Hrůza", ["Michal Hrůza", "David Solař", "Rudolf Merkner", "Biser A. Arichtev"]], ["Který díl páté řady je poslední?", "Něco končí, jiné začíná", ["Něco končí, jiné začíná", "Povodně", "Butik", "Nehoda"]], ["Který díl čtvrté řady bezprostředně následuje po Listopadu 1989?", "Sametová revoluce", ["Sametová revoluce", "Občanské fórum", "Havel na Hrad!", "Několik vět"]], ["Který díl třetí řady je uveden jako MS v hokeji 1985?", "20. díl", ["20. díl", "18. díl", "21. díl", "26. díl"]], ["Které období pokrývá podle materiálů ČT třetí řada?", "1977–1989", ["1977–1989", "1964–1970", "1970–1977", "1990–1993"]], ["Co nejlépe vystihuje základní princip seriálu Vyprávěj?", "Velké dějiny jsou vyprávěny skrze každodenní život rodiny Dvořákových", ["Velké dějiny jsou vyprávěny skrze každodenní život rodiny Dvořákových", "Seriál je čistě politickým dramatem bez rodinné linie", "Seriál sleduje jediný rok života jedné postavy", "Seriál je dokumentární rekonstrukcí bez hraných postav"]]]};
-let level="lehka", game=[], pos=0, score=0;
-document.querySelectorAll(".quiz-level").forEach(btn=>btn.addEventListener("click",()=>{
- document.querySelectorAll(".quiz-level").forEach(x=>x.classList.remove("active"));
- btn.classList.add("active"); level=btn.dataset.level;
-}));
-function shuffle(a){
-  const b=[...a];
-  for(let i=b.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [b[i],b[j]]=[b[j],b[i]];
-  }
-  return b;
-}
-document.getElementById("start").addEventListener("click", startQuiz);
 
-function startQuiz(){
- game=shuffle(BANK[level]).slice(0,15).map(q=>({q:q[0],correct:q[1],answers:shuffle(q[2])}));
- pos=0;score=0;
- document.getElementById("settings").style.display="none";
- document.getElementById("quiz").style.display="block";
- draw();
+<body>
+
+<nav class="nav">
+<div class="navin">
+
+<a class="brand" href="index.html">
+VYPRÁVĚJ
+<small>NEOFICIÁLNÍ FANOUŠKOVSKÝ WEB</small>
+</a>
+
+<a href="serial.html">Seriál</a>
+<a href="rady.html">Řady</a>
+<a href="epizody.html">Epizody</a>
+<a href="postavy.html">Postavy</a>
+<a href="timeline.html">Časová osa</a>
+<a href="zajimavosti.html">Zajímavosti</a>
+<a href="bonusy.html">Bonusy</a>
+<a href="galerie.html">Galerie</a>
+<a href="kviz.html">Kvíz</a>
+
+</div>
+</nav>
+
+
+<main>
+
+<section class="wrap quiz-box">
+
+<span class="sectiontag">KVÍZ</span>
+
+<h1 class="title">
+Jak dobře znáš Vyprávěj?
+</h1>
+
+<p class="lead">
+Vyber obtížnost a zjisti, jak dobře znáš rodinu Dvořákových.
+</p>
+
+
+<div id="menu">
+
+<h2>Vyber obtížnost</h2>
+
+<div class="difficulties">
+
+<button class="difficulty active" data-level="easy">
+<b>LEHKÁ</b><br>
+Základní otázky
+</button>
+
+<button class="difficulty" data-level="medium">
+<b>STŘEDNÍ</b><br>
+Pro fanoušky seriálu
+</button>
+
+<button class="difficulty" data-level="hard">
+<b>TĚŽKÁ</b><br>
+Pro opravdové znalce
+</button>
+
+</div>
+
+<button id="startQuiz">
+SPUSTIT KVÍZ
+</button>
+
+</div>
+
+
+<div id="game" style="display:none;">
+
+<div class="score">
+
+<span id="questionNumber">
+Otázka 1 / 15
+</span>
+
+<span id="score">
+Skóre: 0
+</span>
+
+</div>
+
+<div class="question" id="question"></div>
+
+<div class="answers" id="answers"></div>
+
+</div>
+
+
+<div id="result" style="display:none;"></div>
+
+</section>
+
+</main>
+
+
+<script>
+
+/* =========================
+   OTÁZKY
+========================= */
+
+const questions = {
+
+easy: [
+
+{
+q:"V kterém roce začíná příběh seriálu Vyprávěj?",
+a:["1964","1958","1972","1989"],
+c:0
+},
+
+{
+q:"Kdo hraje Karla Dvořáka?",
+a:["Roman Vojtek","Svatopluk Skopal","David Prachař","Jaromír Nosek"],
+c:0
+},
+
+{
+q:"Kdo hraje Evu Dvořákovou?",
+a:["Andrea Kerestešová","Lucie Štěpánková","Hana Vagnerová","Veronika Freimanová"],
+c:0
+},
+
+{
+q:"Kolik dílů má první řada?",
+a:["26","16","22","30"],
+c:0
+},
+
+{
+q:"Jak se jmenuje první díl seriálu?",
+a:["Od začátku","Svatba","Shledání","21. srpen"],
+c:0
+},
+
+{
+q:"Kdo hraje Josefa Dvořáka?",
+a:["Svatopluk Skopal","Roman Vojtek","David Prachař","Tomáš Töpfer"],
+c:0
+},
+
+{
+q:"Kdo hraje Janu Dvořákovou?",
+a:["Veronika Freimanová","Veronika Žilková","Mahulena Bočanová","Nina Divíšková"],
+c:0
+},
+
+{
+q:"Kdo hraje babičku Bětu?",
+a:["Nina Divíšková","Hana Vagnerová","Veronika Freimanová","Milka Minichová"],
+c:0
+},
+
+{
+q:"Kdo režíroval Vyprávěj?",
+a:["Biser A. Arichtev","Jan Hřebejk","Jiří Strach","Dušan Klein"],
+c:0
+},
+
+{
+q:"Kdo napsal scénář seriálu?",
+a:["Rudolf Merkner","David Solař","Michal Hrůza","Filip Bobiňski"],
+c:0
+},
+
+{
+q:"Kdo složil hudbu k seriálu?",
+a:["David Solař","Michal Hrůza","Rudolf Merkner","Emil Pawinger"],
+c:0
+},
+
+{
+q:"Kdo nazpíval titulní píseň?",
+a:["Michal Hrůza","David Solař","Roman Vojtek","Rudolf Merkner"],
+c:0
+},
+
+{
+q:"Kolik dílů má druhá řada?",
+a:["16","22","26","18"],
+c:0
+},
+
+{
+q:"Kolik dílů má pátá řada?",
+a:["22","16","24","26"],
+c:0
+},
+
+{
+q:"Jak se jmenuje první díl čtvrté řady?",
+a:["Shledání","Miss","Jugoslávie","Listopad 1989"],
+c:0
 }
-function draw(){
- const item=game[pos], box=document.getElementById("quiz");
- box.innerHTML=`<div class="quiz-meta"><span class="pill">${pos+1} / 15</span><span class="pill">Skóre: ${score}</span></div>
- <div class="quiz-question"><h2>${item.q}</h2></div>
- <div class="quiz-answers">${item.answers.map((a,i)=>`<button class="quiz-answer" data-answer="${i}">${String.fromCharCode(65+i)}. ${a}</button>`).join("")}</div>`;
- box.querySelectorAll(".quiz-answer").forEach(btn=>btn.addEventListener("click",()=>answer(btn,item)));
+
+],
+
+
+medium: [
+
+{
+q:"Jak se jmenuje první díl třetí řady?",
+a:["Na rozcestí","Dovolená","Delegace","Přijímačky"],
+c:0
+},
+
+{
+q:"Jak se jmenuje první díl páté řady?",
+a:["Kuponová privatizace","Au-pair","Cibulkovy seznamy","Povodně"],
+c:0
+},
+
+{
+q:"Který díl čtvrté řady se jmenuje Sametová revoluce?",
+a:["8. díl","7. díl","9. díl","10. díl"],
+c:0
+},
+
+{
+q:"Kdo hraje Tondu Sovu?",
+a:["Jaromír Nosek","David Kraus","Ján Jackuliak","Ondřej Veselý"],
+c:0
+},
+
+{
+q:"Kdo hraje Radima Dvořáka?",
+a:["David Prachař","Roman Vojtek","Svatopluk Skopal","Jiří Štěpnička"],
+c:0
+},
+
+{
+q:"Kdo hraje Miladu Dvořákovou?",
+a:["Mahulena Bočanová","Hana Vagnerová","Veronika Žilková","Lenka Zahradnická"],
+c:0
+},
+
+{
+q:"Kdo hraje Renátu Dvořákovou?",
+a:["Lenka Zahradnická","Jana Bernášková","Olga Lounová","Alžběta Stanková"],
+c:0
+},
+
+{
+q:"Kdo hraje Hynka Kupsu?",
+a:["Josef Polášek","Ján Jackuliak","Jan Šťastný","Ladislav Hampl"],
+c:0
+},
+
+{
+q:"Kdo hraje Kamilu Ptáčkovou?",
+a:["Zuzana Kajnarová","Jana Bernášková","Veronika Žilková","Nela Boudová"],
+c:0
+},
+
+{
+q:"Kolik dílů má třetí řada?",
+a:["26","16","22","24"],
+c:0
+},
+
+{
+q:"Kolik dílů má čtvrtá řada?",
+a:["16","22","26","18"],
+c:0
+},
+
+{
+q:"Kolik dílů má pátá řada?",
+a:["22","16","26","20"],
+c:0
+},
+
+{
+q:"Který díl druhé řady se jmenuje Charta 77?",
+a:["15. díl","10. díl","13. díl","16. díl"],
+c:0
+},
+
+{
+q:"Který díl čtvrté řady se jmenuje Havel na Hrad!?",
+a:["10. díl","7. díl","8. díl","16. díl"],
+c:0
+},
+
+{
+q:"Který díl páté řady se jmenuje Povodně?",
+a:["10. díl","9. díl","11. díl","22. díl"],
+c:0
 }
-function answer(btn,item){
- box=document.getElementById("quiz");
- box.querySelectorAll(".quiz-answer").forEach(b=>b.disabled=true);
- const chosen=item.answers[Number(btn.dataset.answer)];
- if(chosen===item.correct){score++;btn.classList.add("correct")}else{
-   btn.classList.add("wrong");
-   box.querySelectorAll(".quiz-answer").forEach(b=>{if(b.textContent.slice(3)===item.correct)b.classList.add("correct")});
- }
- setTimeout(()=>{pos++;pos<15?draw():finish()},650);
+
+],
+
+
+hard: [
+
+{
+q:"Kolik klasických epizod má všech pět řad dohromady?",
+a:["106","123","96","116"],
+c:0
+},
+
+{
+q:"Které dvě řady mají po 26 epizodách?",
+a:["I. a III.","II. a IV.","IV. a V.","II. a V."],
+c:0
+},
+
+{
+q:"Které dvě řady mají po 16 epizodách?",
+a:["II. a IV.","I. a III.","III. a V.","I. a V."],
+c:0
+},
+
+{
+q:"Která postava má mezi představiteli Matěje Hádka, Branislava Holička, Jiřího Nováka a Zdeňka Piškulu?",
+a:["Honza Dvořák","Matěj Dvořák","Karel Dvořák","Radim Dvořák"],
+c:0
+},
+
+{
+q:"Která postava má mezi představitelkami Lucii Štěpánkovou, Elišku Křenkovou a Elišku Zbrankovou?",
+a:["Lucka Francová","Eva Dvořáková","Zuzka Sovová","Veronika Francová"],
+c:0
+},
+
+{
+q:"Kdo je autorem hudby k seriálu?",
+a:["David Solař","Michal Hrůza","Rudolf Merkner","Filip Bobiňski"],
+c:0
+},
+
+{
+q:"Kdo vytvořil titulní píseň?",
+a:["Michal Hrůza","David Solař","Rudolf Merkner","Biser A. Arichtev"],
+c:0
+},
+
+{
+q:"Který díl páté řady je poslední?",
+a:["Něco končí, jiné začíná","Povodně","Butik","Nehoda"],
+c:0
+},
+
+{
+q:"Co se odehrává v dílu Havel na Hrad!?",
+a:["Volba prezidenta Václava Havla","Sametová revoluce","Rozdělení Československa","Kuponová privatizace"],
+c:0
+},
+
+{
+q:"Které období pokrývá třetí řada?",
+a:["1977–1989","1964–1970","1970–1977","1990–1993"],
+c:0
+},
+
+{
+q:"Který díl třetí řady je spojen s MS v hokeji 1985?",
+a:["20. díl","18. díl","21. díl","26. díl"],
+c:0
+},
+
+{
+q:"Který díl čtvrté řady následuje po Listopadu 1989?",
+a:["Sametová revoluce","Občanské fórum","Havel na Hrad!","Několik vět"],
+c:0
+},
+
+{
+q:"Kdo hraje Karla Dvořáka?",
+a:["Roman Vojtek","Radoslav Brzobohatý","David Prachař","Matěj Hádek"],
+c:0
+},
+
+{
+q:"Kdo hraje Janu Dvořákovou?",
+a:["Veronika Freimanová","Veronika Žilková","Mahulena Bočanová","Nina Divíšková"],
+c:0
+},
+
+{
+q:"Která událost patří k roku 1989 a je zásadní pro čtvrtou řadu?",
+a:["Sametová revoluce","Pražské jaro","Invaze vojsk","Kuponová privatizace"],
+c:0
 }
-function finish(){
- const box=document.getElementById("quiz");
- const rating=score===15?"🏆 Dokonalý výsledek!":score>=13?"⭐ Výborně!":score>=10?"👏 Skvělá znalost seriálu!":score>=7?"👍 Slušný výsledek!":"📺 Dej si ještě jedno kolo!";
- box.innerHTML=`<div class="quiz-result"><h2>${rating}</h2><p>Obtížnost: <b>${level==="lehka"?"Lehká":level==="stredni"?"Střední":"Těžká"}</b></p><p>Skóre: <b>${score} / 15</b></p><button class="btn" onclick="restart()">Hrát znovu</button></div>`;
+
+]};
+
+
+/* =========================
+   PROMÍCHÁNÍ
+========================= */
+
+function shuffle(array) {
+
+    const arr = [...array];
+
+    for (let i = arr.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+
+    return arr;
 }
-function restart(){document.getElementById("settings").style.display="block";document.getElementById("quiz").style.display="none";}
+
+
+/* =========================
+   HRA
+========================= */
+
+let selectedLevel = "easy";
+
+let quiz = [];
+
+let currentQuestion = 0;
+
+let score = 0;
+
+
+/* =========================
+   OBTÍŽNOST
+========================= */
+
+document.querySelectorAll(".difficulty").forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        document.querySelectorAll(".difficulty")
+            .forEach(b => b.classList.remove("active"));
+
+        button.classList.add("active");
+
+        selectedLevel = button.dataset.level;
+
+    });
+
+});
+
+
+/* =========================
+   START
+========================= */
+
+document.getElementById("startQuiz").addEventListener("click", () => {
+
+    quiz = shuffle(questions[selectedLevel])
+        .slice(0, 15);
+
+    currentQuestion = 0;
+
+    score = 0;
+
+    document.getElementById("menu").style.display = "none";
+
+    document.getElementById("game").style.display = "block";
+
+    showQuestion();
+
+});
+
+
+/* =========================
+   OTÁZKA
+========================= */
+
+function showQuestion() {
+
+    const q = quiz[currentQuestion];
+
+    document.getElementById("questionNumber").textContent =
+        "Otázka " + (currentQuestion + 1) + " / 15";
+
+    document.getElementById("score").textContent =
+        "Skóre: " + score;
+
+
+    document.getElementById("question").textContent =
+        q.q;
+
+
+    const answers = q.a.map((text, index) => ({
+        text: text,
+        correct: index === q.c
+    }));
+
+
+    /* TADY SE OPRAVDU MÍCHAJÍ ODPOVĚDI */
+
+    const shuffledAnswers = shuffle(answers);
+
+
+    const container =
+        document.getElementById("answers");
+
+
+    container.innerHTML = "";
+
+
+    shuffledAnswers.forEach((answer, index) => {
+
+        const button =
+            document.createElement("button");
+
+        button.className = "answer";
+
+        button.textContent =
+            String.fromCharCode(65 + index) +
+            ". " +
+            answer.text;
+
+
+        button.addEventListener("click", () => {
+
+            answerQuestion(button, answer.correct);
+
+        });
+
+
+        container.appendChild(button);
+
+    });
+
+}
+
+
+/* =========================
+   ODPOVĚĎ
+========================= */
+
+function answerQuestion(button, correct) {
+
+    document
+        .querySelectorAll(".answer")
+        .forEach(b => b.disabled = true);
+
+
+    if (correct) {
+
+        button.classList.add("correct");
+
+        score++;
+
+    } else {
+
+        button.classList.add("wrong");
+
+        document
+            .querySelectorAll(".answer")
+            .forEach(b => {
+
+                if (b.dataset.correct === "true") {
+
+                    b.classList.add("correct");
+
+                }
+
+            });
+
+    }
+
+
+    setTimeout(() => {
+
+        currentQuestion++;
+
+
+        if (currentQuestion < 15) {
+
+            showQuestion();
+
+        } else {
+
+            showResult();
+
+        }
+
+    }, 700);
+
+}
+
+
+/* =========================
+   VÝSLEDEK
+========================= */
+
+function showResult() {
+
+    document.getElementById("game").style.display = "none";
+
+    const result =
+        document.getElementById("result");
+
+
+    let text;
+
+
+    if (score === 15) {
+
+        text = "🏆 Dokonalý výsledek!";
+
+    } else if (score >= 12) {
+
+        text = "⭐ Výborně!";
+
+    } else if (score >= 9) {
+
+        text = "👏 Velmi dobrá znalost seriálu!";
+
+    } else if (score >= 6) {
+
+        text = "👍 Slušný výsledek!";
+
+    } else {
+
+        text = "📺 Dej si ještě jedno kolo!";
+
+    }
+
+
+    result.innerHTML = `
+
+        <div class="result">
+
+            <h2>${text}</h2>
+
+            <h3>${score} / 15 správně</h3>
+
+            <button class="restart" onclick="location.reload()">
+                HRÁT ZNOVU
+            </button>
+
+        </div>
+
+    `;
+
+
+    result.style.display = "block";
+
+}
+
 </script>
+
 </body>
 </html>
